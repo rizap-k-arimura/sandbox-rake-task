@@ -8,8 +8,10 @@ Rails.application.routes.draw do
   # Render dynamic PWA files from app/views/pwa/*
   get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
   get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
+
+  get "run_task", to: "ecs#run_task"
   
- namespace 'api' do 
+  namespace 'api' do 
     get 'run_example_task', to: 'task#run_example_task'
   end
 
