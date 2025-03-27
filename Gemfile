@@ -5,7 +5,7 @@ gem "rails", "~> 7.2.1"
 # The original asset pipeline for Rails [https://github.com/rails/sprockets-rails]
 gem "sprockets-rails"
 # Use mysql as the database for Active Record
-gem "mysql2", "~> 0.5"
+gem 'sqlite3', '~> 2.0.2'
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
 # Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
@@ -27,6 +27,9 @@ gem "jbuilder"
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ windows jruby ]
+
+gem 'aws-sdk-ecs', '~> 1.153'
+gem 'dotenv-rails'
 
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
