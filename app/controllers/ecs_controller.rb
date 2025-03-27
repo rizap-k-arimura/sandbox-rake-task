@@ -21,6 +21,14 @@ class EcsController < ApplicationController
         },
       },
       task_definition: "sandbox-rake-task:2", 
+      overrides: {
+        container_overrides: [
+          {
+            name: "sandbox-rake-task",
+            command: ["bundle", "exec", "rake", "sample_task:sample"],
+          },
+        ],
+      }
     })
   
     puts "RUN TASK"
