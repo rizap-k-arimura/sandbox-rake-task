@@ -73,8 +73,7 @@ jobs:
       - name: Format Subdomain
         id: format-subdomain
         run: |
-          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
-          SUBDOMAIN=$(echo "$BRANCH_NAME" | tr -d '/_')
+          SUBDOMAIN=$(git rev-parse --short HEAD)
           echo "SUBDOMAIN=$SUBDOMAIN" >> "$GITHUB_OUTPUT"
 
       - name: Define Service Name

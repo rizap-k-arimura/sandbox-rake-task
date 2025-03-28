@@ -46,6 +46,10 @@
         {
           "name": "SERVICE_CONNEXT_URL",
           "value": "http://service-connect-test-server.arimura-service-connect:80"
+        },
+        {
+          "name": "CURRENT_VERSION",
+          "value": "test1"
         }
       ],
       "environmentFiles": [],

@@ -15,6 +15,5 @@ Rails.application.routes.draw do
     get 'run_example_task', to: 'task#run_example_task'
   end
 
-  # Defines the root path route ("/")
-  # root "posts#index"
+  root "home#index"
 end

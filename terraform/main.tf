@@ -21,7 +21,7 @@ resource "aws_ecs_service" "default" {
 
 # ALB
 resource "aws_lb_target_group" "http_80" {
-  name        = var.subdomain
+  name        = "${local.resource_prefix}-${var.subdomain}"
   port        = 80
   protocol    = "HTTP"
   vpc_id      = data.aws_vpc.default.id
@@ -35,7 +35,7 @@ resource "aws_lb_target_group" "http_80" {
 
 resource "aws_lb_listener_rule" "host_based" {
   listener_arn = data.aws_lb_listener.selected443.arn
-  priority     = 100 # 本来は重複しない数値にする
+  priority     = var.listener_priority
 
   action {
     type             = "forward"
