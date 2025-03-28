@@ -105,7 +105,7 @@ jobs:
         run: |
           terraform apply -auto-approve \
             -var="subdomain=${{ steps.format-subdomain.outputs.SUBDOMAIN }}" \
-            -var="listener_priority=$((100 + RANDOM % 900))"
+            -var="listener_priority=$((100 + RANDOM % 900))" \
             -var="service_name=${{ steps.define-service-name.outputs.SERVICE_NAME }}"
 
   deploy-to-ecs:
