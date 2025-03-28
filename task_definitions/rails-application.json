@@ -49,7 +49,7 @@
         },
         {
           "name": "CURRENT_VERSION",
-          "value": "test1"
+          "value": "development"
         }
       ],
       "environmentFiles": [],
