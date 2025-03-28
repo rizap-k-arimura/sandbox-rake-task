@@ -1,0 +1,34 @@
+name: Deploy ECS Service for multi-staging
+
+on:
+  push:
+    branches:
+      - 'issue/**'
+  workflow_dispatch:
+
+
+jobs:
+  string-operation:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Format Subdomain
+        id: format-subdomain
+        run: |
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          SUBDOMAIN=$(echo "$BRANCH_NAME" | tr -d '/_')
+          echo "SUBDOMAIN=$SUBDOMAIN" >> "$GITHUB_OUTPUT"
+
+      - name: Define Service Name
+        id: define-service-name
+        run: |
+          echo "SERVICE_NAME=app-${SUBDOMAIN}" >> $GITHUB_OUTPUT
+      
+      - name: Echo Subdomain
+        run: echo "Subdomain is ${{ steps.format-subdomain.outputs.SUBDOMAIN }}"
+
+      - name: Echo Output
+        run: echo $GITHUB_OUTPUT

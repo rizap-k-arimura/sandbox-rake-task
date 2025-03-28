@@ -80,7 +80,7 @@ jobs:
       - name: Define Service Name
         id: define-service-name
         run: |
-          echo "SERVICE_NAME=app-${SUBDOMAIN}" >> $GITHUB_OUTPUT
+          echo "SERVICE_NAME=app-${{ steps.format-subdomain.outputs.SUBDOMAIN }}" >> $GITHUB_OUTPUT
       
       - name: Echo Subdomain
         run: echo "Subdomain is ${{ steps.format-subdomain.outputs.SUBDOMAIN }}"
@@ -104,7 +104,7 @@ jobs:
         working-directory: terraform/
         run: |
           terraform apply -auto-approve \
-            -var="subdomain=${SUBDOMAIN}" \
+            -var="subdomain=${{ steps.format-subdomain.outputs.SUBDOMAIN }}" \
             -var="listener_priority=$((100 + RANDOM % 900))"
             -var="service_name=${{ steps.define-service-name.outputs.SERVICE_NAME }}"
 
