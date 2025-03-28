@@ -1,4 +1,4 @@
-name: Deploy ECS Service for multi-staging
+name: String Operation Test
 
 on:
   push:
