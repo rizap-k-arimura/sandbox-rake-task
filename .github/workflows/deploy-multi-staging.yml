@@ -86,6 +86,11 @@ jobs:
         with:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
 
       - name: Initialize Terraform
         working-directory: terraform/
@@ -98,6 +103,20 @@ jobs:
             -var="subdomain=${SUBDOMAIN}" \
             -var="listener_priority=$((100 + RANDOM % 900))"
             -var="service_name=${{ steps.define-service-name.outputs.SERVICE_NAME }}"
+
+  deploy-to-ecs:
+    needs: [build-and-push-to-ecr, create-multi-staging-resources]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: deploy-session
 
       - uses: aws-actions/amazon-ecr-login@v1
         id: login-ecr
@@ -116,6 +135,6 @@ jobs:
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.task-def-be.outputs.task-definition }}
-          service: ${{ steps.define-service-name.outputs.SERVICE_NAME }}
+          service: ${{ needs.create-multi-staging-resources.outputs.SERVICE_NAME }}
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
