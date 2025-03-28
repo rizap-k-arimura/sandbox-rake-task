@@ -1,0 +1,117 @@
+name: Deploy ECS Service for multi-staging
+
+on:
+  push:
+    branches:
+      - 'issue/**'
+  workflow_dispatch:
+
+env:
+  AWS_ROLE_ARN: arn:aws:iam::943714519719:role/gha-rails-application-sandbox
+  AWS_REGION: ap-northeast-1
+  ECR_REPOSITORY: rails-application
+  ECS_TASK_DEF_FILE: rails-application.json
+  ECS_CLUSTER: rails-application-sandbox
+  CONTAINER_NAME: app
+
+jobs:
+  build-and-push-to-ecr:
+    runs-on: ubuntu-latest
+
+    outputs:
+      image_tag: ${{ steps.set_image_tag.outputs.IMAGE_TAG }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: deploy-session
+
+      - name: Login to ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          mask-password: 'true'
+
+      - name: Set IMAGE_TAG
+        id: set_image_tag
+        run: echo "IMAGE_TAG=$(date +%Y%m%d)-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Build and push (be)
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          docker buildx build \
+          -f Dockerfile \
+          -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.set_image_tag.outputs.IMAGE_TAG }} \
+          --push \
+          --provenance=false \
+          .
+
+  create-multi-staging-resources:
+    needs: build-and-push-to-ecr
+    runs-on: ubuntu-latest
+    outputs:
+      service_name: ${{ steps.define-service-name.outputs.SERVICE_NAME }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Extract Branch Name
+        run: echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+
+      - name: Format Subdomain
+        id: format-subdomain
+        run: echo "SUBDOMAIN=${BRANCH_NAME//\//}" >> $GITHUB_ENV
+
+      - name: Define Service Name
+        id: define-service-name
+        run: |
+          echo "SERVICE_NAME=rails-application-${SUBDOMAIN}" >> $GITHUB_OUTPUT
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Initialize Terraform
+        working-directory: terraform/
+        run: terraform init
+
+      - name: Apply Terraform Configuration
+        working-directory: terraform/
+        run: |
+          terraform apply -auto-approve \
+            -var="subdomain=${SUBDOMAIN}" \
+            -var="listener_priority=$((100 + RANDOM % 900))"
+            -var="service_name=${{ steps.define-service-name.outputs.SERVICE_NAME }}"
+
+      - uses: aws-actions/amazon-ecr-login@v1
+        id: login-ecr
+        with:
+          mask-password: 'true'
+
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def-be
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ./task_definitions/${{ env.ECS_TASK_DEF_FILE }}
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{needs.build-and-push-to-ecr.outputs.image_tag}}
+
+      - name: Registers ECS task definition and deploys ECS service
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def-be.outputs.task-definition }}
+          service: ${{ steps.define-service-name.outputs.SERVICE_NAME }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
