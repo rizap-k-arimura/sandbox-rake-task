@@ -51,6 +51,12 @@
       "environmentFiles": [],
       "mountPoints": [],
       "volumesFrom": [],
+      "secrets": [
+        {
+          "name": "RAILS_MASTER_KEY",
+          "valueFrom": "arn:aws:secretsmanager:ap-northeast-1:943714519719:secret:rails-application-sandbox-5o9jlB:RAILS_MASTER_KEY::"
+        }
+      ],
       "ulimits": [],
       "logConfiguration": {
         "logDriver": "awslogs",
@@ -67,7 +73,7 @@
       "systemControls": []
     }
   ],
-  "family": "sandbox-rails-app",
+  "family": "rails-application",
   "taskRoleArn": "arn:aws:iam::943714519719:role/ecsTaskExecutionRole",
   "executionRoleArn": "arn:aws:iam::943714519719:role/ecsTaskExecutionRole",
   "networkMode": "awsvpc",
