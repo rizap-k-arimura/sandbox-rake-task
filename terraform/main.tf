@@ -21,7 +21,7 @@ resource "aws_ecs_service" "default" {
 
 # ALB
 resource "aws_lb_target_group" "http_80" {
-  name        = "${var.subdomain}-rails-application-tg"
+  name        = var.subdomain
   port        = 80
   protocol    = "HTTP"
   vpc_id      = data.aws_vpc.default.id
