@@ -13,6 +13,7 @@ env:
   ECS_TASK_DEF_FILE: rails-application.json
   ECS_CLUSTER: rails-application-sandbox
   CONTAINER_NAME: app
+  TERRAFORM_VERSION: 1.5.7
 
 permissions:
   id-token: write
