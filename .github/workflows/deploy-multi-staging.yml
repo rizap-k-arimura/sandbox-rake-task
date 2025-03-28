@@ -81,6 +81,9 @@ jobs:
         id: define-service-name
         run: |
           echo "SERVICE_NAME=app-${SUBDOMAIN}" >> $GITHUB_OUTPUT
+      
+      - name: Echo Subdomain
+        run: echo "Subdomain is ${{ steps.format-subdomain.outputs.SUBDOMAIN }}"
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
